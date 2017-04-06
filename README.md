@@ -1,2 +1,6 @@
-# build_your_own_text_editor
-Build Your Own Text Editor
+# Build Your Own Text Editor
+
+아래의 내용 따라해보기
+
+* http://viewsourcecode.org/snaptoken/kilo/index.html
+
