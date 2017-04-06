@@ -1,0 +1,3 @@
+canonical mode를 끈다.
+ICANON을 off 하면 line-by-line이 아닌 byte-by-byte로 입력을 읽는다.
+
