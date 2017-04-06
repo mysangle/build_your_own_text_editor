@@ -1,0 +1,4 @@
+입력받은 값을 출력한다.
+printf()는 입력값을 %d는 decimal number로, %c는 character로 출력한다.
+Ctrl-S는 프로그램을 얼게 만든다. 이것을 풀려면 Ctrl-Q를 입력한다. Ctrl-Z는 프로그램을 background에서 실행되게 한다. 이것을 foreground로 되돌릴려면 'fg'를 입력한다.
+
