@@ -1,0 +1,7 @@
+Makefile을 통해 컴파일을 편하게 할 수 있다.
+
+$(CC) : cc를 의미한다.
+-Wall: all Warnings
+-Wextra와 -pedantic: 더 많은 warning들
+-std=c99: C 언어 표준으로 C99를 사용한다. C99는 변수를 함수의 어디에서나 선언할 수 있다(ANSI C는 함수나 블록의 시작에서만 선언할 수 있다.).
+
