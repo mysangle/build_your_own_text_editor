@@ -1,0 +1,2 @@
+response를 buffer에 저장한다.
+
