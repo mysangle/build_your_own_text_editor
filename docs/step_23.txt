@@ -1,0 +1,4 @@
+커서의 위치를 스크린의 top/left로 이동한다.
+
+H command는 두개의 argument를 취한다. row와 column. argument의 구분은 ';'로 한다. 값은 1부터 시작한다. 1;1의 경우는 생략할 수 있다.
+
