@@ -1,0 +1,4 @@
+Ctrl-S와 Ctrl-Q를 disable한다.
+Ctrl-S는 Ctrl-Q를 누를때까지 data를 terminal로 보내는 것을 중단한다.
+프린터 같은 장비가 준비가 될 때까지 data의 전송을 중단하고자 하는 경우 사용한다.
+
