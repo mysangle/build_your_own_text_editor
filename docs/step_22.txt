@@ -1,0 +1,7 @@
+화면을 지운다(clearing the screen).
+
+'\x1b': escape character or 27 in decimal
+escape sequence는 escape character로 시작하고 바로 다음에 [가 온다.
+J command는 화면을 지운다. command앞의 2는 전체 스크린을 지우라는 것이고, 1은 커서가 있는 곳까지 지우라는 것이고, 0은 커서부터 스크린의 끝까지 지우라는 것이다.
+J 명령에서 볼 수 있듯이 escape sequence는 command의 앞에 arguments를 취한다.
+
