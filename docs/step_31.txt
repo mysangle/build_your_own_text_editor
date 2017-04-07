@@ -1,0 +1,4 @@
+커서 위치를 얻어온다.
+
+n command에 6의 argument를 주면 커서 위치를 얻어올 수 있다. n command의 reply로커서 위치를 알 수 있다.
+
