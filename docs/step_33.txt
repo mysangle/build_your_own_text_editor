@@ -1,0 +1,2 @@
+response를 파싱하여 rows와 cols에 저장한다.
+
