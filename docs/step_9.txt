@@ -1,0 +1,2 @@
+Ctrl-C가 보내는 SIGINT와 Ctrl-Z가 보내는 SIGTSTP를 끈다.
+
