@@ -1,0 +1,10 @@
+에러를 발생시키려면 아래와 같이 한다.
+
+> ./kilo < kilo.c
+
+or
+
+> echo test | ./kilo
+
+Cygwin의 경우 read()가 time out되는 경우 -1을 리턴하고 errno를 EAGAIN으로 설정한다.
+
