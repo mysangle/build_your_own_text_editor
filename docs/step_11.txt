@@ -1,0 +1,5 @@
+Ctrl-V를 disable한다.
+
+Ctrl-V는 이후에 오는 입력을 terminal로 보낸다.
+예를 들어, Ctrl-V를 입력 후 Ctrl-C를 입력하면 화면에 3이 나올 것이다.
+
