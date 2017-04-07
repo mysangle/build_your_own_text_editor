@@ -1,0 +1,2 @@
+ioctl을 사용하여 window의 size를 얻어온다.
+
