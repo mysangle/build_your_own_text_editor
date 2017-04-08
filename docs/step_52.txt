@@ -1,0 +1,5 @@
+Home과 End 키에 대한 처리를 추가한다.
+
+Home키는 OS에 따라 <esc>[1~, <esc>[7~, <esc>[H, <esc>OH 가 올 수 있다.
+End키는 OS에 따라 <esc>[4~, <esc>[8~, <esc>[F, <esc>OF 가 올 수 있다.
+
