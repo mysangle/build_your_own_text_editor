@@ -1,0 +1,4 @@
+화면을 refresh하는 동안 커서를 숨긴다.
+
+?25 argument를 통해 h와 l command를 사용하면 h command는 커서를 보여주고 l command는 커서를 숨긴다. 
+
