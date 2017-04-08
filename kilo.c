@@ -185,8 +185,7 @@ void editorOpen(char *filename) {
   char *line = NULL;
   size_t linecap = 0;
   ssize_t linelen = 13;
-  linelen = getline(&line, &linecap, fp);
-  if (linelen != -1) {
+  while ((linelen = getline(&line, &linecap, fp)) != -1) {
     if (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r'))
         linelen--;
     editorAppendRow(line, linelen);
