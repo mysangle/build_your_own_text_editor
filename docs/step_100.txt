@@ -1,0 +1,2 @@
+화면에 초기 status message를 표시한다.
+
