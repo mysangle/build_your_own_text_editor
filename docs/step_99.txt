@@ -1,0 +1,2 @@
+status message를 위한 라인을 만든다.
+
