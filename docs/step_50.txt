@@ -1,0 +1,4 @@
+page up 과 page down에 대한 처리를 추가한다.
+
+page up은 <esc>[5~ 이고 page down은 <esc>[6~ 이다.
+
