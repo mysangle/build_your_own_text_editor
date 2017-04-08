@@ -1,0 +1,5 @@
+status bar를 텍스트 화면과 구별하기 위해 반전한다.
+
+<esc>[7m은 inverted color로 바꾼다. <esc>[m은 이것을 원복한다.
+m은 argument로 1은 bold, 4는 underscor, 5는 blink, 7은 inverted color, 0은 모든 변경한 설정을 취소한다. 0이 default이다.
+
