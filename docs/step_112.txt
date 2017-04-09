@@ -1,0 +1,2 @@
+status message에 dirty 여부를 표시하도록 수정한다.
+
