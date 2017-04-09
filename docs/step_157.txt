@@ -1,0 +1,6 @@
+파일 타입에 따른 highlight를 넣기 위한 struct를 추가한다.
+
+filetype: 사용자에게 보여주는 파일 타입의 이름
+filematch: 파일 타입으로 구별되기 위한 string들
+flags: 파일 타입에서 숫자를 highlight할 것인지, string을 highlight할 것인지를 결정하기 위한 flag
+
