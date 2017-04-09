@@ -1,0 +1,2 @@
+multi-line comment 안의 single-line comment는 무시한다.
+
