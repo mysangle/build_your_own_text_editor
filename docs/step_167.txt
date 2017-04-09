@@ -1,0 +1,2 @@
+double-quoted string과 single-quoted string을 highlight한다.
+
