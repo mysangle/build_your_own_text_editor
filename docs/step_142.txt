@@ -1,0 +1,3 @@
+Syntax highlighting의 시작.
+숫자를 빨간색으로 표시한다.
+
