@@ -1,0 +1,2 @@
+status bar에 화살표키로 search가 가능하다는 것을 표시한다.
+
