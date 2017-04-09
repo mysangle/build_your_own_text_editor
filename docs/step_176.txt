@@ -1,0 +1,2 @@
+기존의 칼라가 있는 곳에 nonprintable character가 들어가는 경우 기존의 칼라가 유지되도록 한다.
+
