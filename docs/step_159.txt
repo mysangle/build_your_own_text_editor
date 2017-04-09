@@ -1,0 +1,2 @@
+editorSyntax를 위한 초기 값을 설정한다.
+
