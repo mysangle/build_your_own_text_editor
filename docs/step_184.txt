@@ -1,0 +1,2 @@
+이전 라인의 comment 여부를 보고 highlight를 판단한다.
+
