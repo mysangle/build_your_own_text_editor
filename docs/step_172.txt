@@ -1,0 +1,3 @@
+keyword에 대한 highlight 처리를 추가한다.
+33은 yellow이고 32는 green이다.
+
