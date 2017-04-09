@@ -1,0 +1,2 @@
+string에 대한 HIGHLIGHT를 추가한다.
+
