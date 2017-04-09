@@ -1,0 +1,3 @@
+multi-line comment를 위한 칼라를 지정한다.
+single-line comment와 같은 칼라를 사용한다.
+
