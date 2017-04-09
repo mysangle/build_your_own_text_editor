@@ -1,0 +1,2 @@
+single line comment의 시작을 알리는 문자를 저장한다.
+
