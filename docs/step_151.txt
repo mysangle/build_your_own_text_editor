@@ -1,0 +1,2 @@
+search의 결과 위치에 대응하는 hl에 HL_MATCH 값을 넣는다.
+
