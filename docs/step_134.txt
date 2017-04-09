@@ -1,0 +1,2 @@
+Ctrl-f의 입력시 Search를 한다.
+
