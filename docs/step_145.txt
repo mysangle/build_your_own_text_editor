@@ -1,0 +1,3 @@
+row의 hl에 character의 Highlight 종류를 지정하는 함수를 추가한다.
+digit인 경우 HL_NUMBER로 지정한다.
+
