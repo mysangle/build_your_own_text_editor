@@ -1,0 +1,2 @@
+string에 escapeing이 있는 경우 두문자를 건너뛴다.
+
