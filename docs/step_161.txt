@@ -1,0 +1,2 @@
+highlight시 syntax를 참고하여 결정한다.
+
