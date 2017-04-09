@@ -1,0 +1,2 @@
+single line comment에 대한 칼라를 추가한다.
+36은 cyan이다.
