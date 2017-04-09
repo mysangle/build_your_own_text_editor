@@ -1,0 +1,2 @@
+multi-line comment를 처리한다.
+
