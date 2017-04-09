@@ -1,0 +1,2 @@
+single character를 추가하는 함수를 만든다.
+
