@@ -23,10 +23,12 @@
 #define KILO_TAB_STOP 8
 #define KILO_QUIT_TIMES 3
 
+// control key가 같이 눌렸는지 확인한다.
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 enum editorKey {
   BACKSPACE = 127,
+  //보통의 키입력과의 충돌을 피하기 위해 char의 영역을 넘는 값을 준다.
   ARROW_LEFT = 1000,
   ARROW_RIGHT,
   ARROW_UP,
@@ -55,39 +57,49 @@ enum editorHighlight {
 /*** data ***/
 
 struct editorSyntax {
-  char *filetype;
-  char **filematch;
-  char **keywords;
+  char *filetype; // status bar에 보여지는 파일 타입.
+  char **filematch; // 파일이름에 들어가 있어야 할 패턴.
+  char **keywords; // 칼라를 다르게 보여줄 단어들.
   char *singleline_comment_start;
   char *multiline_comment_start;
   char *multiline_comment_end;
-  int flags;
+  int flags; // highlight할 타입을 저장하고 있는 bit flag
 };
 
+/**
+ * editor row.
+ * store a line of text
+ *
+ * 'tab'같은 경우 chars에서는 1 byte만을 차지하지만
+ * render에서는 8 byte를 차지한다.
+ */
 typedef struct erow {
-  int idx;
-  int size;
-  int rsize;
-  char *chars;
-  char *render;
+  int idx; // line number
+  int size; // length
+  int rsize; // render된 data의 length
+  char *chars; // character data
+  char *render; // chars를 실제 터미날에 보여지는 형태로 바꾸어서 저장
+  // highlight 관련 정보(editorHighlight)를 저장하고 있는다.
   unsigned char *hl;
-  int hl_open_comment;
+  int hl_open_comment; // 이전 라인이 comment인지 아닌지를 저장한다.
 } erow;
 
 struct editorConfig {
+  // 커서의 x,y 위치
   int cx, cy;
-  int rx;
-  int rowoff;
-  int coloff;
-  int screenrows;
-  int screencols;
-  int numrows;
+  int rx; // 실제로 커서가 위치해야 하는 위치를 지정한다.
+  int rowoff; // row offset for scrolling
+  int coloff; // column offset for scrolling
+  int screenrows; // terminal window height
+  int screencols; // terminal window width
+  int numrows; // 전체 라인 수
   erow *row;
-  int dirty;
-  char *filename;
+  int dirty; // 라인에서의 내용이 바뀌었는지 아닌지를 확인하기 위한 값
+  char *filename; // 로딩한 파일의 이름
   char statusmsg[80];
   time_t statusmsg_time;
   struct editorSyntax *syntax;
+  // 이전의 터미날 설정을 저장한다.
   struct termios orig_termios;
 };
 
@@ -96,6 +108,8 @@ struct editorConfig E;
 /*** filetypes ***/
 
 char *C_HL_extensions[] = { ".c", ".h", ".cpp", NULL };
+// keyword는 두 종류로 분류한다. 종류별로 다른 칼라를 적용한다.
+// '|'가 끝에 있는 것이 두째 종류의 keyword이다.
 char *C_HL_keywords[] = {
   "switch", "if", "while", "for", "break", "continue", "return", "else",
   "struct", "union", "typedef", "static", "enum", "class", "case",
@@ -123,6 +137,10 @@ char *editorPrompt(char *prompt, void (*callback)(char *, int));
 
 /*** terminal ***/
 
+/**
+ * 에러 메시지를 표시하고 프로그램을 종료한다.
+ * perror()은 s와 함께 errno에 대한 설명을 출력한다.
+ */
 void die(const char *s) {
   write(STDOUT_FILENO, "\x1b[2J", 4);
   write(STDOUT_FILENO, "\x1b[H", 3);
@@ -131,26 +149,70 @@ void die(const char *s) {
   exit(1);
 }
 
+/**
+ * 프로그램 종료시 원래의  터미날 모드로 돌아가도록 한다.
+ */
 void disableRawMode() {
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios) == -1)
     die("tcsetattr");
 }
 
+/**
+ * 터미날 설정을 canonical mode에서 raw mode로 변경한다.
+ * 변경된 내용을 프로그램 종료시 원복하기 위해 tcgetattr을 사용하여
+ * termios 정보를 저장해 놓는다.
+ * canonical mode: 사용자가 Enter 키를 눌렀을 때 지금까지의 키 입력을 프로그램에 전달한다.
+ * raw mode: 키를 입력할 때마다 프로그램에 키를 보낸다.
+ * 
+ * 아래 flag들을 모두 disable한다는 것에 유의하자.
+ */
 void enableRawMode() {
   if (tcgetattr(STDIN_FILENO, &E.orig_termios) == -1) die("tcgetattr");
   atexit(disableRawMode);
 
   struct termios raw = E.orig_termios;
+  // BRKINT: break condition시 SIGINT가 발생하도록 한다.
+  // ICRNL: carriage return을 newline으로 변경한다.
+  //   Ctrl-M, Enter: 13이 표시되어야 하나 newline으로의 변경에 의해
+  //                  10이 표시된다.(mac에서는 13으로 표시됨)
+  // INPCK: parity checking을 enable한다.
+  // ISTRIP: input byte의 8번째 비트를 0로 바꾼다.
+  // IXON: 아래의 feature
+  //   Ctrl-S: 터미날로 data를 보내는 것을 막는다.
+  //   Ctrl-Q: Ctrl-S를 취소한다.
   raw.c_iflag &= ~(BRKINT | ICRNL |INPCK | ISTRIP | IXON);
+  // OPOST: '\n'을 '\r\n'으로 변경한다.
   raw.c_oflag &= ~(OPOST);
+  // CS8: character size(CS)를 byte당 8비트로 설정한다.
+  // 유일하게 이 함수에서 enable하는 bitmask
   raw.c_cflag |= (CS8);
+  // ECHO: 키 입력에 대한 에코
+  // ICANON: canonical mode.
+  // IEXTEN: 아래의 feature
+  //   Ctrl-V: 이후에 오는 character를 터미날에 전달한다.
+  // ISIG: SIGINT(Ctrl-C)나 SIGTSTP(Ctrl-Z)같은 signal
+  //   SIGINT: 현재 프로세스를 종료하는 시그날
+  //   SIGTSTP: 현재 프로세스를 중단(suspend)하는 시그날
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+  // VMIN: read()가 리턴하기 전에 필요한 최소한의 input byte.
+  //   0으로 설정함으로서 read()는 input이 발생하면 바로 리턴한다.
   raw.c_cc[VMIN] = 0;
+  // VTIME: read()가 리턴하기를 기다리느 최대한의 시간.
+  //   1로 설정함으로서 100 millisecond 동안 입력이 없으면
+  //   0의 리턴값으로 리턴한다.
   raw.c_cc[VTIME] = 1;
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
+/**
+ * wait for keypress. low-level terminal input
+ * Page Up: <esc>[5~
+ * Page Down: <esc>[6~
+ * Home: <esc>[1~, <esc>[7~ or <esc>[H
+ * End: <esc>[4~, <esc>[8~, <esc>[F or <esc>[OF
+ * Delete: <esc>[3~
+ */
 int editorReadKey() {
   int nread;
   char c;
@@ -205,6 +267,8 @@ int getCursorPosition(int *rows, int *cols) {
   char buf[32];
   unsigned int i = 0;
 
+  // n command: argument가 6인 경우 커서 위치를 요청한다.
+  //   이에 대한 응답은 24;80R 의 형태로 온다.
   if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) return -1;
 
   while (i < sizeof(buf) - 1) {
@@ -220,13 +284,20 @@ int getCursorPosition(int *rows, int *cols) {
   return 0;
 }
 
+/**
+ * 터미날 윈도우의 크기를 얻는다.
+ *
+ */
 int getWindowSize(int *rows, int *cols) {
   struct winsize ws;
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+    // ioctl이 동작하지 않는 시스템이 있다.
+    // B command: cursor down, C command: cursor forward
+    //   둘다 스크린을 벗어나게 커서를 움직이지 않으므로 큰 값인
+    //   999로 설정하여 화면 크기를 알아본다.
     if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1;
     return getCursorPosition(rows, cols);
-    return -1;
   } else {
     *cols = ws.ws_col;
     *rows = ws.ws_row;
@@ -396,6 +467,9 @@ void editorSelectSyntaxHighlight() {
 
 /*** row operations ***/
 
+/**
+ * cx로부터 rx를 찾는다.
+ */
 int editorRowCxToRx(erow *row, int cx) {
   int rx = 0;
   int j;
@@ -407,6 +481,9 @@ int editorRowCxToRx(erow *row, int cx) {
   return rx;
 }
 
+/**
+ * rx로부터 cx를 찾는다.
+ */
 int editorRowRxToCx(erow *row, int rx) {
   int cur_rx = 0;
   int cx;
@@ -584,6 +661,7 @@ void editorOpen(char *filename) {
   size_t linecap = 0;
   ssize_t linelen = 13;
   while ((linelen = getline(&line, &linecap, fp)) != -1) {
+    // '\r'과 '\n'은 저장할 필요가 없다.
     while (linelen > 0 && (line[linelen - 1] == '\n' ||
                            line[linelen - 1] == '\r'))
         linelen--;
@@ -699,8 +777,8 @@ void editorFind() {
 /*** append buffer ***/
 
 struct abuf {
-  char *b;
-  int len;
+  char *b; // 터미날에 쓸 data에 대한 buffer pointer
+  int len; // buffer length
 };
 
 #define ABUF_INIT {NULL, 0}
@@ -720,6 +798,9 @@ void abFree(struct abuf *ab) {
 
 /*** output ***/
 
+/**
+ * 커서가 화면을 벗어나는 경우 offset을 조정한다.
+ */
 void editorScroll() {
   E.rx = 0;
   if (E.cy < E.numrows) {
@@ -739,12 +820,22 @@ void editorScroll() {
     E.coloff = E.rx - E.screencols + 1;
   }
 }
+
+/**
+ * 저장된 row를 읽어서 터미날에 한번에 쓴다.
+ *
+ * K command: erase in line
+ *   2 - 현재 라인을 지운다.
+ *   1 - 커서의 왼쪽을 지운다.
+ *   0 - 커서의 오른쪽을 지운다.
+ */
 void editorDrawRows(struct abuf *ab) {
   int y;
   for (y = 0; y < E.screenrows; y++) {
     int filerow = y + E.rowoff;
     if (filerow >= E.numrows) {
       if (E.numrows == 0 && y == E.screenrows / 3) {
+        // 파일 로딩이 아닌 경우 환영 메시지를 표시한다.
         char welcome[80];
         int welcomelen = snprintf(welcome, sizeof(welcome),
                 "Kilo editor -- version %s", KILO_VERSION);
@@ -757,6 +848,7 @@ void editorDrawRows(struct abuf *ab) {
         while (padding--) abAppend(ab, " ", 1);
         abAppend(ab, welcome, welcomelen);
       } else {
+        // 파일 내용이 없는 곳에 '~'를 표시한다.
         abAppend(ab, "~", 1);
       }
     } else {
@@ -803,7 +895,12 @@ void editorDrawRows(struct abuf *ab) {
   }
 }
 
+/**
+ * 터미날의 아래에 표시되는 status bar
+ * 라인 수, 수정 여부, 파일 타입을 표시한다.
+ */
 void editorDrawStatusBar(struct abuf *ab) {
+  // inverted color
   abAppend(ab, "\x1b[7m", 4);
   char status[80], rstatus[80];
   int len = snprintf(status, sizeof(status), "%.20s - %d lines %s",
@@ -826,14 +923,24 @@ void editorDrawStatusBar(struct abuf *ab) {
   abAppend(ab, "\r\n", 2);
 }
 
+/**
+ * 터미날의 제일 아래에 표시되는 status messsage
+ */
 void editorDrawMessageBar(struct abuf *ab) {
   abAppend(ab, "\x1b[K", 3);
   int msglen = strlen(E.statusmsg);
   if (msglen > E.screencols) msglen = E.screencols;
+  // 5초동안 입력이 없었으면 사라진다.
   if (msglen && time(NULL) - E.statusmsg_time < 5)
     abAppend(ab, E.statusmsg, msglen);
 }
-
+/**
+ * H command: cursor position. ex) <esc>[12;40H.
+ *   row와 column값은 1부터 시작한다.
+ *   <esc>[1;1H == <esc>[H
+ * ?25l command: 커서를 감춘다.
+ * ?25h command: 커서를 보여준다.
+ */
 void editorRefreshScreen() {
   editorScroll();
 
@@ -847,6 +954,7 @@ void editorRefreshScreen() {
   editorDrawMessageBar(&ab);
 
   char buf[32];
+  // 커서의 위치를 지정한다.
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1,
                                             (E.rx - E.coloff) + 1);
   abAppend(&ab, buf, strlen(buf));
@@ -937,6 +1045,7 @@ void editorMoveCursor(int key) {
       break;
   }
 
+  // 커서가 라인의 끝을 넘지 않도록 한다.
   row = (E.cy >= E.numrows) ? NULL : & E.row[E.cy];
   int rowlen = row ? row->size : 0;
   if (E.cx > rowlen) {
@@ -944,6 +1053,9 @@ void editorMoveCursor(int key) {
   }
 }
 
+/**
+ *  입력받은 키 입력을 처리한다.
+ */
 void editorProcessKeypress() {
   static int quit_times = KILO_QUIT_TIMES;
 
@@ -954,7 +1066,11 @@ void editorProcessKeypress() {
       editorInsertNewLine();
       break;
 
+    // Ctrl-Q의 경우 프로그램을 종료한다.
     case CTRL_KEY('q'):
+      /* 파일이 변경된 경우 저장없이 종료하려면
+       * KILO_QUIT_TIMES 수만큼 Ctrl-Q를 눌러야 한다.
+       */
       if (E.dirty && quit_times > 0) {
         editorSetStatusMessage("WARNING!!! File has unsaved changes. "
           "Press Ctrl-Q %d more times to quit.", quit_times);
