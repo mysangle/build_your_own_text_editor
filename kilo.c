@@ -731,6 +731,7 @@ void editorFindCallback(char *query, int key) {
     direction = 1;
   }
 
+  if (last_match == -1) direction = 1;
   int current = last_match;
   int i;
   for (i = 0; i < E.numrows; i++) {
@@ -1109,10 +1110,12 @@ void editorProcessKeypress() {
     case PAGE_UP:
     case PAGE_DOWN:
       {
-        if (c == PAGE_UP)
+        if (c == PAGE_UP) {
           E.cy = E.rowoff;
-        else if (c == PAGE_DOWN)
+        } else if (c == PAGE_DOWN) {
           E.cy = E.rowoff + E.screenrows - 1;
+          if (E.cy > E.numrows) E.cy = E.numrows;
+        }
 
         int times = E.screenrows;
         while (times--)
