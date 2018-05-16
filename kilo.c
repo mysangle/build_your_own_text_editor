@@ -197,7 +197,7 @@ void enableRawMode() {
   // VMIN: read()가 리턴하기 전에 필요한 최소한의 input byte.
   //   0으로 설정함으로서 read()는 input이 발생하면 바로 리턴한다.
   raw.c_cc[VMIN] = 0;
-  // VTIME: read()가 리턴하기를 기다리느 최대한의 시간.
+  // VTIME: read()가 리턴하기를 기다리는 최대한의 시간.
   //   1로 설정함으로서 100 millisecond 동안 입력이 없으면
   //   0의 리턴값으로 리턴한다.
   raw.c_cc[VTIME] = 1;
